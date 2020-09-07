@@ -1,0 +1,3 @@
+GET https://api.github.com/orgs/EruditorGroup/repos
+Accept: application/vnd.github.v3+json
+Authorization: Basic schusovskoy:f0c4f54ad844440e56af1ff8d683946c8d7ac8fa
