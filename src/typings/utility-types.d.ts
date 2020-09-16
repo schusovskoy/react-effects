@@ -31,9 +31,15 @@ type Func<
   ? (a1: T1, a2: T2, a3: T3, a4: T4, a5: T5, a6: T6, a7: T7) => T8
   : (a1: T1, a2: T2, a3: T3, a4: T4, a5: T5, a6: T6, a7: T7, a8: T8) => T9
 
-type UnionToIntersection<U> = (U extends any ? (k: U) => void : never) extends (
-  k: infer I,
-) => void
+type Bivariant<T extends (...args: any[]) => unknown> = T extends (
+  ...args: infer A
+) => infer R
+  ? { bivarianceHack(...args: A): R }['bivarianceHack']
+  : never
+
+type UnionToIntersection<U> = (
+  U extends unknown ? (a: U) => void : never
+) extends (a: infer I) => void
   ? I
   : never
 

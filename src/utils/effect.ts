@@ -15,26 +15,26 @@ type EffectEnv<T> = T extends E.Effect<unknown, infer R, unknown, unknown>
   ? R
   : never
 
-type SubscribeHandler<I extends RecordKey, T> = (id: I, value: T) => void
-type SubUnsub<I extends RecordKey, T> = (
-  handler: SubscribeHandler<I, T>,
+type SubscribeHandler<K extends RecordKey, T> = (id: K, value: T) => void
+type SubUnsub<K extends RecordKey, T> = (
+  handler: SubscribeHandler<K, T>,
 ) => void
 
-type Setter<T> = (value: T) => void
+type Setter<T> = Bivariant<(value: T) => void>
 type Getter<T> = () => T
 type Setable<T> = { setState: Setter<T> }
 type Getable<T> = { getState: Getter<T> }
-type State<I extends RecordKey, T> = Setable<T> &
+type State<K extends RecordKey, T> = Setable<T> &
   Getable<T> & {
-    subscribe: SubUnsub<I, T>
-    unsubscribe: SubUnsub<I, T>
+    subscribe: SubUnsub<K, T>
+    unsubscribe: SubUnsub<K, T>
   }
 
-const State = class<I extends RecordKey, T> implements State<I, T> {
+const State = class<K extends RecordKey, T> implements State<K, T> {
   #state: T
-  readonly #id: I
-  readonly #handlers = new Set<SubscribeHandler<I, T>>()
-  constructor(id: I, value: T) {
+  readonly #id: K
+  readonly #handlers = new Set<SubscribeHandler<K, T>>()
+  constructor(id: K, value: T) {
     this.#id = id
     this.#state = value
   }
@@ -43,20 +43,20 @@ const State = class<I extends RecordKey, T> implements State<I, T> {
     this.#state = a
     this.#handlers.forEach(handler => handler(this.#id, a))
   }
-  subscribe: SubUnsub<I, T> = handler => this.#handlers.add(handler)
-  unsubscribe: SubUnsub<I, T> = handler => this.#handlers.delete(handler)
+  subscribe: SubUnsub<K, T> = handler => this.#handlers.add(handler)
+  unsubscribe: SubUnsub<K, T> = handler => this.#handlers.delete(handler)
 }
 
-type StateEnv<I extends RecordKey, T> = Record<I, State<I, T>>
-type GetableEnv<I extends RecordKey, T> = Record<I, Getable<T>>
-type SetableEnv<I extends RecordKey, T> = Record<I, Setable<T>>
-type StateEnvCreator = <I extends RecordKey, T>(
-  id: I,
+type StateEnv<K extends RecordKey, T> = Record<K, State<K, T>>
+type GetableEnv<K extends RecordKey, T> = Record<K, Getable<T>>
+type SetableEnv<K extends RecordKey, T> = Record<K, Setable<T>>
+type StateEnvCreator = <K extends RecordKey, T>(
+  id: K,
   initialValue: T,
 ) => [
-  () => StateEnv<I, T>,
-  E.SyncR<GetableEnv<I, T>, T>,
-  (state: T) => E.SyncR<SetableEnv<I, T>, T>,
+  () => StateEnv<K, T>,
+  E.SyncR<GetableEnv<K, T>, T>,
+  (state: T) => E.SyncR<SetableEnv<K, T>, T>,
 ]
 
 export const createStateEnv: StateEnvCreator = (id, initialValue) => [
@@ -69,17 +69,24 @@ export const createStateEnv: StateEnvCreator = (id, initialValue) => [
     }),
 ]
 
-type CreateEnvHook = <K extends RecordKey, T extends StateEnv<K, never>>(
+type CreateEnvHook = <K extends RecordKey, T extends StateEnv<K, unknown>>(
   stateEnvThunk: () => T,
 ) => T
 
 export const useCreateEnv: CreateEnvHook = stateEnvThunk =>
   useMemo(stateEnvThunk, [])
 
-type EnvStateHook = <I extends RecordKey, T>(
-  id: I,
-  env: StateEnv<I, T>,
-) => [T, Setter<T>]
+type StateType<
+  T extends StateEnv<RecordKey, unknown>,
+  K extends RecordKey
+> = ReturnType<T[K]['getState']>
+type EnvStateHook = <
+  K extends RecordKey,
+  T extends StateEnv<K, StateType<T, K>>
+>(
+  id: K,
+  env: T,
+) => [StateType<T, K>, Setter<StateType<T, K>>]
 
 export const useEnvState: EnvStateHook = (id, env) => {
   const [state, setState] = useState(env[id].getState())
