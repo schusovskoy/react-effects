@@ -101,7 +101,7 @@ type HandlerHook = <A extends unknown[], R>(
 
 export const useHandler: HandlerHook = (handler, env) => {
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  const provideEnv = useMemo(() => E.provide(env), [])
+  const provideEnv = useMemo(() => E.provideAll(env), [])
   return useMemo(
     () => (...args) => {
       const effect = handler(...args)
@@ -119,7 +119,7 @@ type SelectorHook = <R extends object, T>(
 
 export const useSelector: SelectorHook = (selector, env) => {
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  const effect = useMemo(() => E.provide(env)(selector), [])
+  const effect = useMemo(() => E.provideAll(env)(selector), [])
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const envKeys = useMemo(() => ownKeys(env), [])
   const [state, setState] = useState<EffectResult<typeof effect>>()
@@ -164,7 +164,7 @@ export const useSelectHandler: SelectHandlerHook = (
   args,
 ) => {
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  const effect = useMemo(() => E.provide(env)(selectHandler(...args)), args)
+  const effect = useMemo(() => E.provideAll(env)(selectHandler(...args)), args)
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const envKeys = useMemo(() => ownKeys(env), [])
   const [state, setState] = useState<EffectResult<typeof effect>>()
@@ -200,7 +200,7 @@ export const useSelectHandler: SelectHandlerHook = (
 type EffectMemoizer = <K extends RecordKey>(
   keys: K[],
   ttl?: number,
-) => <R extends StateEnv<K, unknown>, E, T>(
+) => <R extends Record<K, Getable<unknown>>, E, T>(
   effect: E.AsyncRE<R, E, T>,
 ) => E.AsyncRE<R, E, T>
 
@@ -281,7 +281,7 @@ export const memoizeEffect: EffectMemoizer = (
 type EffectHandlerMemoizer = <K extends RecordKey>(
   keys: K[],
   ttl?: number,
-) => <A extends unknown[], R extends StateEnv<K, unknown>, E, T>(
+) => <A extends unknown[], R extends Record<K, Getable<unknown>>, E, T>(
   effectHandler: (...args: A) => E.AsyncRE<R, E, T>,
 ) => (...args: A) => E.AsyncRE<R, E, T>
 
