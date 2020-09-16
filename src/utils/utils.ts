@@ -12,10 +12,7 @@ export const ownKeys: OwnKeysGetter = obj => [
   ...Object.getOwnPropertySymbols(obj),
 ]
 
-type RecordCreator = <K extends PrimitiveLiteral<K>, T>(
-  key: K,
-  value: T,
-) => Record<K, T>
+type RecordCreator = <K extends RecordKey, T>(key: K, value: T) => Record<K, T>
 
 export const createRecord: RecordCreator = (key, value) =>
   ({ [key]: value } as Record<typeof key, typeof value>)

@@ -15,11 +15,8 @@ type EffectEnv<T> = T extends E.Effect<unknown, infer R, unknown, unknown>
   ? R
   : never
 
-type SubscribeHandler<I extends PrimitiveLiteral<I>, T> = (
-  id: I,
-  value: T,
-) => void
-type SubUnsub<I extends PrimitiveLiteral<I>, T> = (
+type SubscribeHandler<I extends RecordKey, T> = (id: I, value: T) => void
+type SubUnsub<I extends RecordKey, T> = (
   handler: SubscribeHandler<I, T>,
 ) => void
 
@@ -27,13 +24,13 @@ type Setter<T> = (value: T) => void
 type Getter<T> = () => T
 type Setable<T> = { setState: Setter<T> }
 type Getable<T> = { getState: Getter<T> }
-type State<I extends PrimitiveLiteral<I>, T> = Setable<T> &
+type State<I extends RecordKey, T> = Setable<T> &
   Getable<T> & {
     subscribe: SubUnsub<I, T>
     unsubscribe: SubUnsub<I, T>
   }
 
-const State = class<I extends PrimitiveLiteral<I>, T> implements State<I, T> {
+const State = class<I extends RecordKey, T> implements State<I, T> {
   #state: T
   readonly #id: I
   readonly #handlers = new Set<SubscribeHandler<I, T>>()
@@ -50,10 +47,10 @@ const State = class<I extends PrimitiveLiteral<I>, T> implements State<I, T> {
   unsubscribe: SubUnsub<I, T> = handler => this.#handlers.delete(handler)
 }
 
-type StateEnv<I extends PrimitiveLiteral<I>, T> = Record<I, State<I, T>>
-type GetableEnv<I extends PrimitiveLiteral<I>, T> = Record<I, Getable<T>>
-type SetableEnv<I extends PrimitiveLiteral<I>, T> = Record<I, Setable<T>>
-type StateEnvCreator = <I extends PrimitiveLiteral<I>, T>(
+type StateEnv<I extends RecordKey, T> = Record<I, State<I, T>>
+type GetableEnv<I extends RecordKey, T> = Record<I, Getable<T>>
+type SetableEnv<I extends RecordKey, T> = Record<I, Setable<T>>
+type StateEnvCreator = <I extends RecordKey, T>(
   id: I,
   initialValue: T,
 ) => [
@@ -72,17 +69,14 @@ export const createStateEnv: StateEnvCreator = (id, initialValue) => [
     }),
 ]
 
-type CreateEnvHook = <
-  K extends PrimitiveLiteral<K>,
-  T extends StateEnv<K, never>
->(
+type CreateEnvHook = <K extends RecordKey, T extends StateEnv<K, never>>(
   stateEnvThunk: () => T,
 ) => T
 
 export const useCreateEnv: CreateEnvHook = stateEnvThunk =>
   useMemo(stateEnvThunk, [])
 
-type EnvStateHook = <I extends PrimitiveLiteral<I>, T>(
+type EnvStateHook = <I extends RecordKey, T>(
   id: I,
   env: StateEnv<I, T>,
 ) => [T, Setter<T>]
@@ -203,7 +197,7 @@ export const useSelectHandler: SelectHandlerHook = (
   return state
 }
 
-type EffectMemoizer = <K extends PrimitiveLiteral<K>>(
+type EffectMemoizer = <K extends RecordKey>(
   keys: K[],
   ttl?: number,
 ) => <R extends StateEnv<K, unknown>, E, T>(
@@ -284,7 +278,7 @@ export const memoizeEffect: EffectMemoizer = (
   )
 }
 
-type EffectHandlerMemoizer = <K extends PrimitiveLiteral<K>>(
+type EffectHandlerMemoizer = <K extends RecordKey>(
   keys: K[],
   ttl?: number,
 ) => <A extends unknown[], R extends StateEnv<K, unknown>, E, T>(
