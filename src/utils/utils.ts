@@ -78,3 +78,9 @@ export const eqShallow = Eq.fromEquals(shallowEqual)
 
 export const currentTimeS: Func<number> = () =>
   Math.floor(new Date().valueOf() / 1000)
+
+type ApplyFunc = <T extends unknown[], R>(
+  fn: (...args: T) => R,
+) => (args: T) => R
+
+export const apply: ApplyFunc = fn => args => fn(...args)

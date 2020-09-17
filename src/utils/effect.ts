@@ -211,7 +211,7 @@ type EffectMemoizer = <K extends RecordKey>(
   effect: E.AsyncRE<R, E, T>,
 ) => E.AsyncRE<R, E, T>
 
-export const memoizeEffect: EffectMemoizer = (
+export const memoizeEffectForEnv: EffectMemoizer = (
   keys,
   ttl = Infinity,
 ) => effect => {
@@ -285,9 +285,77 @@ export const memoizeEffect: EffectMemoizer = (
   )
 }
 
+export const memoizeEffect: EffectMemoizer = (
+  keys,
+  ttl = Infinity,
+) => effect => {
+  type Eff = typeof effect
+  type Env = EffectEnv<Eff>
+  type Err = EffectError<Eff>
+  type Res = EffectResult<Eff>
+
+  let keysCache: unknown[] | undefined
+  let valueCache: Eff | undefined
+  let awaitCache: Eff | undefined
+  let resolveCache: Func<Res, void> | undefined
+  let rejectCache: Func<Err, void> | undefined
+  let cacheTime: number | undefined
+
+  return pipe(
+    E.accessEnvironment<Env>(),
+    E.chain(env => {
+      const currentTime = currentTimeS()
+      const keysValues = A.array.map(keys, key => env[key].getState())
+      const keysCacheValid =
+        !!keysCache &&
+        currentTime - (cacheTime || currentTime) <= ttl &&
+        eqArray.equals(keysCache, keysValues)
+
+      if (keysCacheValid && valueCache) return valueCache
+      if (keysCacheValid && awaitCache) return awaitCache
+      if (keysCacheValid) {
+        return (awaitCache = E.fromPromiseMap(err => err as Err)(
+          () =>
+            new Promise<Res>((res, rej) => {
+              resolveCache = res
+              rejectCache = rej
+            }),
+        ))
+      }
+
+      keysCache = keysValues
+      valueCache = undefined
+      cacheTime = undefined
+      return pipe(
+        effect,
+        E.chain(value => {
+          valueCache = E.pure(value)
+          cacheTime = currentTimeS()
+          resolveCache?.(value as Res)
+          resolveCache = undefined
+          rejectCache = undefined
+          awaitCache = undefined
+          return valueCache
+        }),
+        E.mapError(error => {
+          rejectCache?.(error as Err)
+          valueCache = undefined
+          cacheTime = undefined
+          keysCache = undefined
+          resolveCache = undefined
+          rejectCache = undefined
+          awaitCache = undefined
+          return error
+        }),
+      )
+    }),
+  )
+}
+
 type EffectHandlerMemoizer = <K extends RecordKey>(
   keys: K[],
   ttl?: number,
+  forEnv?: boolean,
 ) => <A extends unknown[], R extends Record<K, Getable<unknown>>, E, T>(
   effectHandler: (...args: A) => E.AsyncRE<R, E, T>,
 ) => (...args: A) => E.AsyncRE<R, E, T>
@@ -295,8 +363,9 @@ type EffectHandlerMemoizer = <K extends RecordKey>(
 export const memoizeEffectHandler: EffectHandlerMemoizer = (
   keys,
   ttl = Infinity,
+  forEnv = false,
 ) => effectHandler => {
-  const memoizeForKeys = memoizeEffect(keys)
+  const memoizeForKeys = (forEnv ? memoizeEffectForEnv : memoizeEffect)(keys)
   let argsCache: Parameters<typeof effectHandler> | undefined
   let effectCache: ReturnType<typeof effectHandler> | undefined
   let cacheTime: number | undefined

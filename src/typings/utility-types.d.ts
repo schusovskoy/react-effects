@@ -31,7 +31,7 @@ type Func<
   ? (a1: T1, a2: T2, a3: T3, a4: T4, a5: T5, a6: T6, a7: T7) => T8
   : (a1: T1, a2: T2, a3: T3, a4: T4, a5: T5, a6: T6, a7: T7, a8: T8) => T9
 
-type Bivariant<T extends (...args: any[]) => unknown> = T extends (
+type Bivariant<T extends (...args: never[]) => unknown> = T extends (
   ...args: infer A
 ) => infer R
   ? { bivarianceHack(...args: A): R }['bivarianceHack']
