@@ -12,7 +12,7 @@ const Container = styled.div`
 type AvatarProps = { url: string }
 
 const Avatar = styled.div<AvatarProps>`
-  width: 32px;
+  flex: 0 0 32px;
   height: 32px;
   border-radius: 16px;
   overflow: hidden;
@@ -24,10 +24,17 @@ const Avatar = styled.div<AvatarProps>`
 
 const Content = styled.div`
   flex: 1;
+  overflow: hidden;
 `
 
 const TextContainer = styled.div`
   display: flex;
+`
+
+const Title = styled(Text)`
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 `
 
 const Time = styled(Text)`
@@ -37,6 +44,8 @@ const Time = styled(Text)`
 
 const Description = styled(Text)`
   margin-top: 8px;
+  overflow: hidden;
+  max-height: 34px;
 `
 
 type ListItemProps = {
@@ -56,9 +65,9 @@ const ListItem: React.FC<ListItemProps> = ({
     <Avatar url={url} />
     <Content>
       <TextContainer>
-        <Text size="16" weight="600">
+        <Title size="16" weight="600">
           {title}
-        </Text>
+        </Title>
         <Time size="14">{time}</Time>
       </TextContainer>
       <Description size="14">{description}</Description>

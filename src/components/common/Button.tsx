@@ -49,10 +49,11 @@ const Dot = styled.div<DotProps>`
 
 type ButtonProps = {
   loading?: boolean
+  onClick?: React.MouseEventHandler<HTMLElement>
 }
 
-const Button: React.FC<ButtonProps> = ({ loading, children }) => (
-  <Container>
+const Button: React.FC<ButtonProps> = ({ loading, children, onClick }) => (
+  <Container onClick={onClick}>
     {loading ? (
       <>
         <Dot nth={0} />
