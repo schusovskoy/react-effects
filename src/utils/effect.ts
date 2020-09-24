@@ -5,10 +5,10 @@ import * as A from 'fp-ts/lib/Array'
 import { ownKeys, createRecord, path, eqShallow, currentTimeS } from './utils'
 import { pipe } from 'fp-ts/lib/pipeable'
 
-type EffectResult<T> = T extends E.Effect<unknown, unknown, unknown, infer R>
+type EffectResult<T> = T extends E.Effect<unknown, any, unknown, infer R>
   ? R
   : never
-type EffectError<T> = T extends E.Effect<unknown, unknown, infer R, unknown>
+type EffectError<T> = T extends E.Effect<unknown, any, infer R, unknown>
   ? R
   : never
 type EffectEnv<T> = T extends E.Effect<unknown, infer R, unknown, unknown>

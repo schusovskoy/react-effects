@@ -51,7 +51,7 @@ const Description = styled(Text)`
 type ListItemProps = {
   url: string
   title: string
-  description: string
+  description: string | null
   time: string
 }
 

@@ -20,9 +20,9 @@
     "node-fetch": "^2.6.0",
     "react": "^16.13.0",
     "react-dom": "^16.13.0",
-    "react-scripts": "3.4.0",
+    "react-scripts": "4.0.0-next.98",
     "retry-ts": "^0.1.2",
-    "typescript": "3.9.7"
+    "typescript": "4.0.2"
   },
   "scripts": {
     "start": "react-scripts start",

@@ -1,8 +1,8 @@
 import React from 'react'
-import styled from '@emotion/styled'
-import { Global, css, keyframes } from '@emotion/core'
-import { Text, fs16 } from '../components/typography'
-import { ListItem, Button, Input } from '../components/common'
+import { Global, css } from '@emotion/core'
+import Main from '../screens/Main'
+import { createReposEnv } from '../modules/repo'
+import { ProdFetchEnv, useCreateEnv } from '../utils'
 
 const globalStyles = css`
   * {
@@ -14,10 +14,19 @@ const globalStyles = css`
   }
 `
 
-const AppNavigator = () => (
-  <>
-    <Global styles={globalStyles} />
-  </>
-)
+export const EnvContext = React.createContext({
+  ...createReposEnv(),
+  ...ProdFetchEnv,
+})
+
+const AppNavigator = () => {
+  const reposEnv = useCreateEnv(createReposEnv)
+  return (
+    <EnvContext.Provider value={{ ...reposEnv, ...ProdFetchEnv }}>
+      <Global styles={globalStyles} />
+      <Main />
+    </EnvContext.Provider>
+  )
+}
 
 export default AppNavigator
