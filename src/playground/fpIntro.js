@@ -6,13 +6,13 @@ const multiplyByTwo = multiply(2)
 
 const gt = a => b => b > a
 const lt = a => b => b < a
-const greaterThenTwo = gt(2)
+const greaterThanTwo = gt(2)
 
 const numbers = [1, 2, 4, -2, 5]
-let result = numbers.filter(greaterThenTwo)
+let result = numbers.filter(greaterThanTwo)
 console.log(result)
 
-result = numbers.filter(greaterThenTwo).map(multiplyByTwo)
+result = numbers.filter(greaterThanTwo).map(multiplyByTwo)
 console.log(result)
 
 //
@@ -20,7 +20,7 @@ console.log(result)
 const compose = (...fns) => (...args) =>
   fns.reduceRight((acc, fn) => [fn.apply(null, acc)], args)[0]
 
-let pipe = (...fns) => (...args) =>
+const flow = (...fns) => (...args) =>
   fns.reduce((acc, fn) => [fn.apply(null, acc)], args)[0]
 
 const doubleSay = str => str + ', ' + str
@@ -38,10 +38,11 @@ console.log(phrase)
 let transform = compose(exclaim, capitalize, doubleSay)
 console.log(transform('hello'))
 
-transform = pipe(doubleSay, capitalize, exclaim)
+transform = flow(doubleSay, capitalize, exclaim)
 console.log(transform('hello'))
 
-pipe = (arg, ...fns) => fns.reduce((acc, fn) => [fn.apply(null, acc)], [arg])[0]
+const pipe = (arg, ...fns) =>
+  fns.reduce((acc, fn) => [fn.apply(null, acc)], [arg])[0]
 
 console.log(
   pipe(
