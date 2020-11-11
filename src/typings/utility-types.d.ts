@@ -1,4 +1,4 @@
-const EMPTY = Symbol()
+declare const EMPTY: unique symbol
 type Empty = typeof EMPTY
 
 type RecordKey = string | symbol | number
