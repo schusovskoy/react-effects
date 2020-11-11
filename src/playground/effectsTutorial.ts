@@ -1,41 +1,59 @@
-import { effect as E } from '@matechs/core'
+import { effect as E, exit } from '@matechs/core'
+import * as O from 'fp-ts/lib/Option'
 import { pipe } from 'fp-ts/lib/pipeable'
 
-type EffectFetcher = (
-  url: string,
-) => E.Effect<unknown, FetchEnv, Error, EffectfulResponse>
+const opt = O.some(3)
+console.log(
+  pipe(
+    opt,
+    O.map(a => a * 2),
+    O.fold(
+      () => 5,
+      a => a,
+    ),
+  ),
+)
+
+//
+
+type ResponseLike = { json: () => Promise<unknown> }
 type FetchEnv = {
   fetch: (url: string) => Promise<ResponseLike>
 }
-type ResponseLike = { json: () => Promise<unknown> }
-type EffectfulResponse = {
-  json: () => E.Effect<unknown, FetchEnv, Error, unknown>
-}
+
+type EffectFetcher = (
+  url: string,
+) => E.Effect<unknown, FetchEnv, Error, unknown>
 
 const fetchE: EffectFetcher = url =>
-  pipe(
-    E.accessM<unknown, FetchEnv, unknown, Error, ResponseLike>(({ fetch }) =>
-      E.fromPromiseMap(e => new Error(e + ' Fetch Error'))(() => fetch(url)),
+  E.accessM<unknown, FetchEnv, unknown, Error, unknown>(({ fetch }) =>
+    E.fromPromiseMap(e => new Error('Fetch Error: ' + e))(() =>
+      fetch(url).then(x => x.json()),
     ),
-    E.map(x => ({
-      json: () =>
-        E.fromPromiseMap(e => new Error(e + 'Response Error'))(() => x.json()),
-    })),
   )
 
-const a = pipe(
+//
+
+const request = pipe(
   fetchE('https://example.com'),
-  E.chain(({ json }) => json()),
-  E.map(x => x + ' Result'),
+  E.map(x => 'Result: ' + x),
+  E.result,
+  E.map(a => {
+    if (exit.isDone(a)) console.log(a.value)
+    if (exit.isRaise(a)) console.log(a.error)
+  }),
 )
 
 const env: FetchEnv = {
-  fetch: arg => Promise.resolve({ json: () => Promise.resolve({ a: 5 }) }),
+  fetch: arg => Promise.resolve({ json: () => Promise.resolve('Some text') }),
+}
+
+const errorEnv: FetchEnv = {
+  fetch: arg => Promise.reject('Some Error text'),
 }
 
 pipe(
-  a, //
+  request, //
   E.provide(env),
-  E.runToPromiseExit,
-  x => x.then(x => console.log(x, 'asdf')),
+  E.runToPromise,
 )

@@ -69,7 +69,25 @@ class Maybe {
   map(fn) {
     return this.tag === 'NOTHING' ? this : Maybe.of(fn(this.value))
   }
+
+  join() {
+    return this.tag === 'NOTHING' ? Maybe.nothing : this.value
+  }
+
+  chain(fn) {
+    return this.tag === 'NOTHING' ? Maybe.nothing : this.map(fn).join()
+  }
 }
 
 console.log(Maybe.nothing.map(x => x / 2))
 console.log(Maybe.of(8).map(x => x / 2))
+
+//
+
+const head = arr =>
+  Array.isArray(arr) && arr[0] ? Maybe.of(arr[0]) : Maybe.nothing
+
+console.log(Maybe.of([1, 2, 3]).map(head))
+console.log(Maybe.of([1, 2, 3]).chain(head))
+console.log(head([]).map(x => x * 2))
+console.log(head([2]).map(x => x * 2))
