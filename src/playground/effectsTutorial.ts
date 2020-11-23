@@ -2,6 +2,30 @@ import { effect as E, exit } from '@matechs/core'
 import * as O from 'fp-ts/lib/Option'
 import { pipe } from 'fp-ts/lib/pipeable'
 
+/**
+ * const effect = magicFetch('url')
+ *   .map(result => result.field)
+ *   .chain(field => magicFetch(field))
+ *   .fold(exit => {
+ *     if (exit.type === NETWORK_ERROR) return handleError(exit.value)
+ *     if (exit.type === PARSE_ERROR) return handleParseError(exit.value)
+ *     return exit.value
+ *   })
+ *
+ * effect.provide(env).run()
+ *
+ * pipe(
+ *   magicFetch('url'),
+ *   map(result => result.field),
+ *   chain(field => magicFetch(field)),
+ *   fold(exit => {
+ *     if (exit.type === NETWORK_ERROR) return handleError(exit.value)
+ *     if (exit.type === PARSE_ERROR) return handleParseError(exit.value)
+ *     return exit.value
+ *   })
+ * )
+ */
+
 const opt = O.some(3)
 console.log(
   pipe(
