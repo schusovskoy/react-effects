@@ -17,12 +17,6 @@ console.log(result)
 
 //
 
-const compose = (...fns) => (...args) =>
-  fns.reduceRight((acc, fn) => [fn.apply(null, acc)], args)[0]
-
-const flow = (...fns) => (...args) =>
-  fns.reduce((acc, fn) => [fn.apply(null, acc)], args)[0]
-
 const doubleSay = str => str + ', ' + str
 const capitalize = str => str[0].toUpperCase() + str.substring(1)
 const exclaim = str => str + '!'
@@ -35,8 +29,14 @@ console.log(phrase)
 phrase = exclaim(capitalize(doubleSay('hello')))
 console.log(phrase)
 
+const compose = (...fns) => (...args) =>
+  fns.reduceRight((acc, fn) => [fn.apply(null, acc)], args)[0]
+
 let transform = compose(exclaim, capitalize, doubleSay)
 console.log(transform('hello'))
+
+const flow = (...fns) => (...args) =>
+  fns.reduce((acc, fn) => [fn.apply(null, acc)], args)[0]
 
 transform = flow(doubleSay, capitalize, exclaim)
 console.log(transform('hello'))
@@ -61,16 +61,6 @@ console.log(
  *    |> exclaim
  * )
  */
-
-console.log(
-  numbers.map(a =>
-    pipe(
-      a, //
-      multiply(5),
-      exclaim,
-    ),
-  ),
-)
 
 //
 
