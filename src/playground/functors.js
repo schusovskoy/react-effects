@@ -1,12 +1,3 @@
-// identity law
-// invoke(id) == id;
-
-// composition law
-// compose(invoke(f), invoke(g)) == invoke(compose(f, g));
-
-const compose = (...fns) => (...args) =>
-  fns.reduceRight((acc, fn) => [fn.apply(null, acc)], args)[0]
-
 class Identity {
   static of(value) {
     return new Identity(value)
@@ -24,13 +15,21 @@ class Identity {
 const invoke = fn => functor => functor.invoke(fn)
 
 const functorInstance = Identity.of(5)
+
+// identity law
+// invoke(id) == id;
+
 const id = a => a
 
-// id law
 console.log(id(functorInstance))
 console.log(invoke(id)(functorInstance))
 
 // composition law
+// compose(invoke(f), invoke(g)) == invoke(compose(f, g));
+
+const compose = (...fns) => (...args) =>
+  fns.reduceRight((acc, fn) => [fn.apply(null, acc)], args)[0]
+
 console.log(
   compose(
     invoke(x => x * 2),
