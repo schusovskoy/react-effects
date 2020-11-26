@@ -84,9 +84,8 @@ fibo = n => {
 }
 console.log(fibo(7))
 
-const quickSort = arr => {
-  if (!arr.length) return arr
-  const [pivot, ...rest] = arr
+const quickSort = ([pivot, ...rest]) => {
+  if (!pivot) return []
   const left = rest.filter(lt(pivot))
   const right = rest.filter(gt(pivot))
   return quickSort(left).concat([pivot]).concat(quickSort(right))
